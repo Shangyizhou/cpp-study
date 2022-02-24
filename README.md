@@ -13,7 +13,7 @@
 
 **操作系统**
 
-[现代操作系统](https://github.com/Shangyizhou/My-Study-Note/tree/main/计算机组成原理)
+[现代操作系统](https://github.com/Shangyizhou/My-Study-Note/tree/main/操作系统/现代操作系统)
 
 **计算机网络**
 
