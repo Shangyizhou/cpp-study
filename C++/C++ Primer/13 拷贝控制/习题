@@ -1,0 +1,756 @@
+### 13.1
+
+如果构造函数的第一个参数是自身类类型的引用，且所有其他参数（如果有的话）都有默认值，则此构造函数是拷贝构造函数。拷贝构造函数在以下几种情况下会被使用：
+
+- 拷贝初始化（用 `=` 定义变量）。
+- 将一个对象作为实参传递给非引用类型的形参。
+- 一个返回类型为非引用类型的函数返回一个对象。
+- 用花括号列表初始化一个数组中的元素或一个聚合类中的成员。
+- 初始化标准库容器或调用其 insert/push 操作时，容器会对其元素进行拷贝初始化。
+
+### 13.2
+
+这一声明是非法的。因为对于上一题所述的情况，我们需要调用拷贝构造函数，但调用永远也不会成功。因为其自身的参数也是非引用类型，为了调用它，必须拷贝其实参，而为了拷贝实参，又需要调用拷贝构造函数，也就是其自身，从而造成死循环。
+
+### 13.3
+
+这两个类都未定义拷贝构造函数，因此编译器为它们定义了合成的拷贝构造函数。合成的拷贝构造函数逐个拷贝非 static 成员，对内置类型的成员，直接进行内存拷贝，对类类型的成员，调用其拷贝构造函数进行拷贝。
+
+因此，拷贝一个 StrBlob 时，拷贝其唯一的成员 data，使用 shared_ptr 的拷贝构造函数来进行拷贝，因此其引用计数增加 1。
+
+拷贝一个 StrBlobPtr 时，拷贝成员 wptr，用 weak_ptr 的拷贝构造函数进行拷贝，引用计数不变，然后拷贝 curr，直接进行内存复制。
+
+### 13.4
+
+如下几个地方使用了拷贝构造函数：
+
+1. `local = arg` 将 arg 拷贝给 local。
+2. `*heap = local;` 将 local 拷贝到 heap 指定的地址中。
+3. `Point pa[4] = { local, *heap };` 将 local 和 *heap 拷贝给数组的前两个元素。
+4. `return *heap;` 。
+
+### 13.5
+
+```c
+class HasPtr {
+public:
+    HasPtr(const std::string &s = std::string()) :
+        ps(new std::string(s)), i(0) { }
+    HasPtr(const HasPtr &);
+private:
+    std::string *ps;
+    int i;
+};
+
+HasPtr::HasPtr(const HasPtr &orig) :
+            ps(new std::string(*orig.ps)), i(orig.i) { }
+```
+
+### 13.6
+
+拷贝赋值运算符本身是一个重载的赋值运算符，定义为类的成员函数，左侧运算对象绑定到隐含的 this 参数，而右侧的运算对象是所属类类型的，作为函数的参数。函数返回指向其左侧运算对象的引用。
+
+当对类对象进行赋值时，会使用拷贝赋值运算符。
+
+通常情况下，合成的拷贝赋值运算符会将右侧对象的非 static 成员逐个赋予左侧对象的对应成员，这些赋值操作是由类型的拷贝赋值运算符完成的。
+
+若一个类未定义自己的拷贝赋值运算符，编译器就会为其合成拷贝赋值运算符，完成赋值操作，但对于某些类，还会起到禁止该类型对象赋值的效果。
+
+### 13.7
+
+由于两个类都未定义拷贝赋值运算符，因此编译器为它们定义了合成的拷贝赋值运算符。
+
+与拷贝构造函数的行为类似，赋值一个 StrBlob 时，赋值其唯一的成员 data，使用 shared_ptr 的拷贝赋值运算符来完成，因此其引用计数增加 1。
+
+赋值一个 StrBlobPtr 时，赋值成员 wptr，用 weak_ptr 的拷贝赋值运算符进行赋值，引用计数不变，然后赋值 curr，直接进行内存复制。
+
+### 13.8
+
+```c
+class HasPtr {
+public:
+    HasPtr(const std::string &s = std::string()) :
+        ps(new std::string(s)), i(0) { }
+    HasPtr(const HasPtr &);     // 拷贝构造函数
+    HasPtr &operator=(const HasPtr &);			// 拷贝赋值运算符
+private:
+    std::string *ps;
+    int i;
+};
+
+HasPtr::HasPtr(const HasPtr &orig) :
+            ps(new std::string(*orig.ps)), i(orig.i) { }
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs) {
+    std::string *newps = new std::string(*rhs.ps);      // 拷贝指针指向的对象
+    delete ps;                                          // 销毁原 string
+    ps = newps;                                         // 指向新 string
+    i = rhs.i;                                          // 使用内置的 int 赋值
+    return *this;                                       // 返回一个此对象的引用
+}
+```
+
+### 13.9
+
+析构函数完成与构造函数相反的工作：释放对象使用的资源，销毁非静态数据成员。从语法上看，它是类的一个成员函数，名字是波浪号，没有返回值，也不接受参数。
+
+当一个类没有定义析构函数时，编译器会为它合成析构函数。
+
+合成的析构函数体为空，但这并不意味着它什么也不做，当空函数体执行完后，非静态数据成员会被逐个销毁。也就是说，成员是在析构函数体之后隐含的析构阶段中进行销毁的。
+
+### 13.10
+
+
+
+
+
+13.9
+
+析构函数完成与构造函数相反的工作：释放对象使用的资源，销毁非静态数据成员。从语法上看，它是类的一个成员函数，名字是波浪号，没有返回值，也不接受参数。
+
+当一个类没有定义析构函数时，编译器会为它合成析构函数。
+
+合成的析构函数体为空，但这并不意味着它什么也不做，当空函数体执行完后，非静态数据成员会被逐个销毁。也就是说，成员是在析构函数体之后隐含的析构阶段中进行销毁的。
+
+### 13.10
+
+这两个类都没有定义析构函数，因此编译器会为它们合成析构函数。
+
+对 StrBlob，合成析构函数的空函数体执行完毕后，会进行隐含的析构阶段，销毁非静态数据成员 data。这会调用 shared_ptr 的析构函数，将引用计数减 1，引用计数变为 0，会销毁共享的 vector 对象。
+
+对 StrBlobPtr，合成析构函数在隐含的析构阶段会销毁数据成员 wptr 和 curr，销毁 wptr 会调用 weak_ptr 的析构函数，引用计数不变，而 curr 是内置类型，销毁它不会有特殊动作。
+
+### 13.11
+
+```c
+class HasPtr {
+public:
+    HasPtr(const std::string &s = std::string()) :
+        ps(new std::string(s)), i(0) { }
+    HasPtr(const HasPtr &);     // 拷贝构造函数
+    HasPtr &operator=(const HasPtr &);      // 拷贝赋值运算符
+    ~HasPtr();      // 析构函数
+private:
+    std::string *ps;
+    int i;
+};
+
+HasPtr::HasPtr(const HasPtr &orig) :
+            ps(new std::string(*orig.ps)), i(orig.i) { }
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs) {
+    std::string *newps = new std::string(*rhs.ps);  // 拷贝指针指向的对象
+    delete ps;                                      // 销毁原 string
+    ps = newps;                                     // 指向新 string
+    i = rhs.i;                                      // 使用内置的 int 赋值
+    return *this;                                   // 返回一个此对象的引用
+}
+
+HasPtr::~HasPtr() {
+    delete ps;
+}
+```
+
+### 13.12
+
+这段代码中会发生三次析构函数调用：
+
+1. 函数结束时，局部变量 item1 的生命期结束，被销毁，Sale_data 的析构函数被调用。
+2. 类似的，item2 在函数结束时被销毁，Sale_data 的析构函数被调用。
+3. 函数结束时，参数 accum 的生命期结束，被销毁，Sale_data 的析构函数被调用。
+
+在函数结束时，trans 的生命期也结束了，但它是 Sale_data 的指针，并不是它指向的 Sale_data 对象的生命期结束（只有 delete 指针时，指向的动态对象的生命期才结束），所以不会引起析构函数的调用。
+
+### 13.13
+
+```c
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+struct X {
+    X() { cout << "构造函数 X()" << endl; }
+    X(const X &) { cout << "拷贝构造函数 X(const X &)" << endl; }
+    X &operator=(const X &rhs) {
+        cout << "拷贝赋值运算符 =(const X &)" << endl;
+        return *this;
+    }
+    ~X() { cout << "析构函数 ~X()" << endl; }
+};
+
+void f1(X x) { }
+void f2(X &x) { }
+
+int main() {
+    cout << "局部变量：" << endl;
+    X x;
+    cout << endl;
+
+    cout << "非引用参数传递：" << endl;
+    f1(x);
+    cout << endl;
+
+    cout << "引用参数传递：" << endl;
+    f2(x);
+    cout << endl;
+
+    cout << "动态分配：" << endl;
+    X *px = new X;
+    cout << endl;
+
+    cout << "添加到容器中：" << endl;
+    vector<X> vx;
+    vx.push_back(x);
+    cout << endl;
+
+    cout << "释放动态分配对象：" << endl;
+    delete px;
+    cout << endl;
+
+    cout << "拷贝初始化和赋值：" << endl;
+    X y = x;
+    y = x;
+    cout << endl;
+
+    cout << "程序结束！" << endl;
+    return 0;
+}
+```
+
+### 13.14
+
+```c
+#include <iostream>
+
+using namespace std;
+
+class numbered {
+private:
+    static int seq;
+public:
+    numbered() { mysn = seq++; }
+    // 13.15
+    // numbered(numbered &n) { mysn = seq++; }
+    int mysn;
+};
+
+int numbered::seq = 0;
+
+// 13.16
+// void f(const numbered &s)
+void f(const numbered s) {
+    cout << s.mysn << endl;
+}
+
+int main() {
+    numbered a, b = a, c = b;
+    f(a); f(b); f(c);
+
+    return 0;
+}
+```
+
+### 13.15
+
+在此程序中，都是拷贝构造函数在起作用，因此定义能生成新的序号的拷贝构造函数会改变输出结果。
+
+但注意，新的输出结果不是 0、1、2，而是 3、4、5。
+
+因为在定义变量 a 时，默认构造函数起作用，将其序号设定为 0。当定义 b、c 时，拷贝构造函数起作用，将它们的序号分别设定为 1、2。
+
+但是，在每次调用函数 f 时，由于参数是 numbered 类型，又会触发拷贝构造函数，使得每一次都将形参 s 的序号设定为新值，从而导致三次的输出结果是 3、4、5。
+
+程序如下所示：
+
+```c
+#include <iostream>
+
+using namespace std;
+
+class numbered {
+private:
+    static int seq;
+public:
+    numbered() { mysn = seq++; }
+    // 13.15
+    numbered(numbered &n) { mysn = seq++; }
+    int mysn;
+};
+
+int numbered::seq = 0;
+
+// 13.16
+// void f(const numbered &s)
+void f(const numbered s) {
+    cout << s.mysn << endl;
+}
+
+int main() {
+    numbered a, b = a, c = b;
+    f(a); f(b); f(c);
+
+    return 0;
+}
+```
+
+### 13.16
+
+会改变输出结果，新结果是 0、1、2。
+
+原因是，将参数改为 `const numbered &` 。由于形参类型由类类型变为引用类型，传递的不是类对象而是类对象的引用。因此，对每次调用 f，s 都是指向实参的引用，序号自然就是实参的序号。而不是创建一个新的对象，获得一个新序号。
+
+```c
+#include <iostream>
+
+using namespace std;
+
+class numbered {
+private:
+    static int seq;
+public:
+    numbered() { mysn = seq++; }
+    // 13.15
+    numbered(numbered &n) { mysn = seq++; }
+    int mysn;
+};
+
+int numbered::seq = 0;
+
+// 13.16
+void f(const numbered &s) {
+    cout << s.mysn << endl;
+}
+
+int main() {
+    numbered a, b = a, c = b;
+    f(a); f(b); f(c);
+
+    return 0;
+}
+```
+
+### 13.17
+
+同上
+
+### 13.18
+
+```c
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Employee {
+private:
+    static int sn;
+public:
+    Employee() { mysn = sn++; }
+    Employee(const string &s) : name(s), mysn(sn++) { }
+    const string &get_name() { return name; }
+    int get_mysn() { return mysn; }
+private:
+    string name;
+    int mysn;
+};
+
+int Employee::sn = 0;
+
+void f(Employee &s) {
+    cout << s.get_name() << ":" << s.get_mysn() << endl;
+}
+
+int main() {
+    Employee a("陈"), b = a, c;
+    c = b;
+    f(a); f(b); f(c);
+
+    return 0;
+}
+```
+
+### 13.19
+
+```c
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Employee {
+private:
+    static int sn;
+public:
+    Employee() { mysn = sn++; }
+    Employee(const string &s) : name(s), mysn(sn++) { }
+    // 为 13.19 题定义的拷贝构造函数和拷贝赋值运算符
+    Employee(const Employee &e) : name(e.name), mysn(sn++) { }
+    Employee &operator=(Employee &rhs) {
+        name = rhs.name;
+        return *this;
+    }
+    const string &get_name() { return name; }
+    int get_mysn() { return mysn; }
+private:
+    string name;
+    int mysn;
+};
+
+int Employee::sn = 0;
+
+void f(Employee &s) {
+    cout << s.get_name() << ":" << s.get_mysn() << endl;
+}
+
+int main() {
+    Employee a("陈"), b = a, c;
+    c = b;
+    f(a); f(b); f(c);
+
+    return 0;
+}
+```
+
+### 13.20
+
+两个类都未定义拷贝控制成员，因此都是编译器为它们定义合成版本。
+
+当 TextQuery 销毁时，合成版本会销毁其 file 和 wm 成员。对 file 成员，会将 shared_ptr 的引用计数减 1，若变为 0，则销毁所管理的动态 vector 对象（会调用 vector 和 string 的析构函数）。对 wm，调用 map 的析构函数（从而调用 string、shared_ptr 和 set 的析构函数），会正确释放资源。
+
+当 QueryResult 销毁时，合成版本会销毁其 sought、lines 和 file 成员。类似 TextQery，string、shared_ptr、set、vector 的析构函数可能被调用，因为这些类都有良好的拷贝控制成员，会正确释放资源。
+
+当拷贝一个 TextQery 时，合成版本会拷贝 file 和 wm 成员。对 file，shared_ptr 的引用计数会加 1。对 wm，会调用 map 的拷贝构造函数（继而调用 string、shared_ptr 和 set 的拷贝构造函数），因此会正确进行拷贝操作。赋值操作类似，只不过会将原来的资源释放掉，例如，原有的 file 的引用计数会减 1。
+
+QueryResult 的拷贝和赋值类似。
+
+### 13.21
+
+两个类虽然都未定义拷贝控制成员，但它们用智能指针管理共享的动态对象（输入文件内容，查询结果的行号集合），用标准库容器保存大量容器。而这些标准库机制都有设计良好的拷贝控制成员，用合成的拷贝控制成员简单地拷贝、赋值、销毁它们，即可保证正确的资源管理。因此，这两个类并不需要定义自己的拷贝控制成员。实际上，这两个类的类对象之间就存在资源共享，目前的设计已能很好地实现这种共享，同类对象之间的共享也自然能够解决。
+
+### 13.22
+
+```c
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class HasPtr {
+public:
+    HasPtr(const std::string &s = std::string()) :
+            ps(new std::string(s)), i(0) { }
+    HasPtr(const HasPtr &);                 // 拷贝构造函数
+    HasPtr &operator=(const HasPtr &);      // 拷贝赋值运算符
+    HasPtr &operator=(const string &);      // 赋予新 string
+    string &operator*();                    // 解引用
+    ~HasPtr();                              // 析构函数
+private:
+    std::string *ps;
+    int i;
+};
+
+HasPtr::HasPtr(const HasPtr &orig) :
+        ps(new std::string(*orig.ps)), i(orig.i) { }
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs) {
+    std::string *newps = new std::string(*rhs.ps);  // 拷贝指针指向的对象
+    delete ps;                                      // 销毁原 string
+    ps = newps;                                     // 指向新 string
+    i = rhs.i;                                      // 使用内置的 int 赋值
+    return *this;                                   // 返回一个此对象的引用
+}
+
+HasPtr& HasPtr::operator=(const string &rhs) {
+    *ps = rhs;
+    return *this;
+}
+
+string& HasPtr::operator*() {
+    return *ps;
+}
+
+HasPtr::~HasPtr() {
+    delete ps;          // 释放 string 内存
+}
+
+int main() {
+    HasPtr h("hi mom!");
+    HasPtr h2(h);       // 行为类值，h2、h3 和 h 指向不同 string
+    HasPtr h3 = h;
+    h2 = "hi dad!";
+    h3 = "hi son!";
+    cout << "h: " << *h << endl;
+    cout << "h2: " << *h2 << endl;
+    cout << "h3: " << *h3 << endl;
+    return 0;
+}
+```
+
+### 13.23
+
+理解拷贝控制成员的规范写法。
+
+### 13.24
+
+如果未定义析构函数，在销毁 HasPtr 对象时，合成的析构函数不会释放指针 ps 指向的内存，造成内存泄漏。
+
+如果未定义拷贝构造函数，在拷贝 HasPtr 对象时，合成的拷贝构造函数会简单复制 ps 成员，使得两个 HasPtr 指向相同的 string。当其中一个 HasPtr 修改 string 内容时，另一个 HasPtr 也被改变，这并不符合我们的设想。如果同时定义了析构函数，情况会更为糟糕，当销毁其中一个 HasPtr 时，ps 指向的 string 被销毁，另一个 HasPtr 的 ps 成为空悬指针。
+
+### 13.25
+
+由于希望 StrBlob 的行为像值一样，因此在拷贝构造函数和拷贝赋值运算符中，我们应该将其数据 —— string 的 vector 拷贝一份，使得两个 StrBlob 对象指向各自的数据，而不是简单拷贝 shared_ptr 使得两个 StrBlob 指向同一个 vector。
+
+StrBlob 不需要析构函数的原因是，它管理的全部资源就是 string 的 vector，而这是由 shared_ptr 负责管理的。当一个 StrBlob 对象销毁时，会调用 shared_ptr 的析构函数，它会正确调整引用计数，当需要时（引用计数变为 0）释放 vector。即，shared_ptr 保证了资源分配、释放的正确性，StrBlob 就不必进行相应的处理了。
+
+### 13.26
+
+```c
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class HasPtr {
+public:
+    // 构造函数分配新的 string 和新的计数器，将计数器置为 1
+    HasPtr(const std::string &s = std::string()) :
+            ps(new std::string(s)), i(0), use(new size_t(1)) { }
+    // 拷贝构造函数拷贝所有三个数据成员，并递增计数器
+    HasPtr(const HasPtr &);                 // 拷贝构造函数
+    HasPtr &operator=(const HasPtr &);      // 拷贝赋值运算符
+    HasPtr &operator=(const string &);      // 赋予新 string
+    string &operator*();                    // 解引用
+    ~HasPtr();                              // 析构函数
+private:
+    std::string *ps;
+    int i;
+    size_t *use;                            // 用来记录有多少个对象共享 *ps 的成员
+};
+
+HasPtr::HasPtr(const HasPtr &orig) :
+        ps(orig.ps), i(orig.i), use(orig.use) { ++*use; }
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs) {
+    ++*rhs.use;                 // 递增右侧运算对象的引用
+    if (--*use == 0) {          // 然后递减本对象的引用计数
+        delete ps;              // 如果没有其他用户
+        delete use;             // 释放本对象分配的成员
+    }
+    ps = rhs.ps;                // 将数据从 rhs 拷贝到本对象
+    i = rhs.i;
+    use = rhs.use;
+    return *this;               // 返回本对象
+}
+
+HasPtr& HasPtr::operator=(const string &rhs) {
+    *ps = rhs;
+    return *this;
+}
+
+string& HasPtr::operator*() {
+    return *ps;
+}
+
+HasPtr::~HasPtr() {
+    if (--*use == 0) {  // 如果引用计数变为 0
+        delete ps;      // 释放 string 内存
+        delete use;     // 释放计数器内存
+    }
+}
+
+int main() {
+    HasPtr h("hi mom!");
+    HasPtr h2 = h;      // 未分配新 string，h2 和 h 指向相同的 string
+    h = "hi dad!";
+    cout << "h: " << *h << endl;
+    cout << "h2: " << *h2 << endl;
+    return 0;
+}
+```
+
+### 13.28
+
+略
+
+### 13.29
+
+在此 swap 函数中又调用了 swap 来交换 HasPtr 成员 ps 和 i。但这两个成员的类型分别是指针和整型，都是内置类型，因此函数中的 swap 调用被解析为 `std::swap`，而不是 HasPtr 的特定版本 swap（也就是自身），所以不会导致递归循环。
+
+### 13.30
+
+```c
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class HasPtr {
+    friend void swap(HasPtr &, HasPtr &);
+public:
+    HasPtr(const std::string &s = std::string()) :
+            ps(new std::string(s)), i(0) { }
+    HasPtr(const HasPtr &);                 // 拷贝构造函数
+    HasPtr &operator=(const HasPtr &);      // 拷贝赋值运算符
+    HasPtr &operator=(const string &);      // 赋予新 string
+    string &operator*();                    // 解引用
+    ~HasPtr();                              // 析构函数
+private:
+    std::string *ps;
+    int i;
+};
+
+inline
+void swap(HasPtr &lhs, HasPtr &rhs) {
+    using std::swap;
+    swap(lhs.ps, rhs.ps);                   // 交换指针，而不是 string 数据
+    swap(lhs.i, rhs.i);                     // 交换 int 成员
+}
+
+HasPtr::HasPtr(const HasPtr &orig) :
+        ps(new std::string(*orig.ps)), i(orig.i) { }
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs) {
+    std::string *newps = new std::string(*rhs.ps);  // 拷贝指针指向的对象
+    delete ps;                                      // 销毁原 string
+    ps = newps;                                     // 指向新 string
+    i = rhs.i;                                      // 使用内置的 int 赋值
+    return *this;                                   // 返回一个此对象的引用
+}
+
+HasPtr& HasPtr::operator=(const string &rhs) {
+    *ps = rhs;
+    return *this;
+}
+
+string& HasPtr::operator*() {
+    return *ps;
+}
+
+HasPtr::~HasPtr() {
+    delete ps;          // 释放 string 内存
+}
+
+int main() {
+    HasPtr h("hi mom!");
+    HasPtr h2(h);       // 行为类值，h2、h3 和 h 指向不同 string
+    HasPtr h3 = h;
+    h2 = "hi dad!";
+    h3 = "hi son!";
+    swap(h2, h3);
+    cout << "h: " << *h << endl;
+    cout << "h2: " << *h2 << endl;
+    cout << "h3: " << *h3 << endl;
+    return 0;
+}
+```
+
+### 13.31
+
+```c
+#include <iostream>
+using std::cout; using std::endl;
+
+#include <fstream>
+using std::ifstream;
+
+#include <sstream>
+using std::istringstream;
+
+#include <string>
+using std::string;
+
+#include <vector>
+using std::vector;
+
+#include <stdexcept>
+using std::cerr;
+
+class HasPtr {
+    friend void swap(HasPtr &, HasPtr &);
+public:
+    HasPtr(const string &s = string()) :
+            ps(new string(s)), i(0) { }
+    HasPtr(const HasPtr &);                 // 拷贝构造函数
+    HasPtr &operator=(const HasPtr &);      // 拷贝赋值运算符
+    HasPtr &operator=(const string &);      // 赋予新 string
+    string &operator*();                    // 解引用
+    bool operator<(const HasPtr &) const;   // 比较运算
+    ~HasPtr();                              // 析构函数
+private:
+    string *ps;
+    int i;
+};
+
+inline
+void swap(HasPtr &lhs, HasPtr &rhs) {
+    using std::swap;
+    cout << "交换 " << *lhs.ps << " 和 " << *rhs.ps << endl;
+    swap(lhs.ps, rhs.ps);                   // 交换指针，而不是 string 数据
+    swap(lhs.i, rhs.i);                     // 交换 int 成员
+}
+
+HasPtr::HasPtr(const HasPtr &orig) :
+        ps(new string(*orig.ps)), i(orig.i) { }
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs) {
+    string *newps = new string(*rhs.ps);  // 拷贝指针指向的对象
+    delete ps;                                      // 销毁原 string
+    ps = newps;                                     // 指向新 string
+    i = rhs.i;                                      // 使用内置的 int 赋值
+    return *this;                                   // 返回一个此对象的引用
+}
+
+HasPtr& HasPtr::operator=(const string &rhs) {
+    *ps = rhs;
+    return *this;
+}
+
+string& HasPtr::operator*() {
+    return *ps;
+}
+
+bool HasPtr::operator<(const HasPtr &rhs) const {
+    return *ps < *rhs.ps;
+}
+
+HasPtr::~HasPtr() {
+    delete ps;          // 释放 string 内存
+}
+
+int main(int argc, char **argv) {
+    if (argc != 2) {
+        cerr << "请给出文件名" << endl;
+        return -1;
+    }
+    ifstream in(argv[1]);
+    if (!in) {
+        cerr << "无法打开输入文件" << endl;
+        return -1;
+    }
+    vector<HasPtr> hvec;
+    string line;
+    string word;
+    while (getline(in, line)) {
+        istringstream l_in(line);           // 构造字符串流，读取单词
+        while (l_in >> word)
+            hvec.push_back(word);
+    }
+    for (auto p : hvec)
+        cout << *p << " ";
+    cout << endl;
+    sort(hvec.begin(), hvec.end());
+    for (auto p : hvec)
+        cout << *p << " ";
+    cout << endl;
+
+    return 0;
+}
+```
+
+### 13.32
+
+默认 swap 版本（`std::swap`）简单交换两个对象（内置类型的对象）的非静态成员，对 HasPtr 而言，就是交换 string 指针 ps、引用计数指针 use 和整型值 i。可以看出，这种语义是符合期望的 —— 两个 HasPtr 指向了原来对方的 string，而两者互换 string 后，各自的引用计数本应该是不变的（都是减 1 再加 1）。因此，默认 swap 版本已经能正确处理类指针 HasPtr 的交换，专用 swap 版本（用户自定义的 swap）不会带来更多收益。
+
+### 13.33
+

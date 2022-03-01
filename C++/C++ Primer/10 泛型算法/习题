@@ -1,0 +1,869 @@
+## 10.1
+
+```c
+#include <iostream>
+#include <vector>
+#include <list>
+#include <string>
+#include <algorithm>
+
+int main() {
+    // 10.1
+    std::vector<int> ivec = {1, 2, 3, 4, 5, 6, 6, 6, 2};
+    std::cout << "ex 10.1: " << std::count(ivec.cbegin(), ivec.cend(), 6)
+              << std::endl;
+
+    // 10.2
+    std::list<std::string> slst = {"aa", "aaa", "aa", "cc"};
+    std::cout << "ex 10.2: " << std::count(slst.cbegin(), slst.cend(), "aa")
+              << std::endl;
+
+    return 0;
+}
+```
+
+### 10.2
+
+```c
+int main() {
+	vector <string> arr={"hello","hello","hi"};
+	int num = count(arr.begin(),arr.end(),"h");
+	cout << num << endl;
+		
+	return 0;
+}
+```
+
+### 10.3
+
+```c
+#include <iostream>
+#include <vector>
+#include <numeric>
+
+int main() {
+    std::vector<int> ivec;
+    int i = 1;
+    while (i != 101) {
+        ivec.push_back(i);
+        ++i;
+    }
+
+    // 对 ivec 中的元素求和，和的初始值是 0
+    int sum = std::accumulate(ivec.cbegin(), ivec.cend(), 0);
+    std::cout << sum << std::endl;
+
+    return 0;
+}
+```
+
+### 10.4
+
+```c
+#include <iostream>
+#include <vector>
+#include <numeric>
+
+int main() {
+    std::vector<double> v = {-9.21, 3.14};
+
+    // 错误的调用方法
+    std::cout << std::accumulate(v.cbegin(), v.cend(), 0) << std::endl;
+    // 正确的调用方法
+    std::cout << std::accumulate(v.cbegin(), v.cend(), 0.0) << std::endl;
+
+    return 0;
+}
+```
+
+### 10.5
+
+```c
+/*
+ * @Brief  In the call to equal on rosters, what
+ * would happen if both rosters held C-style strings,
+ * rather than library strings?
+ * @Answer It's not quite the same as `std::string`
+ * Maybe the function 'equal' return true when you
+ * make a comparison between two c-style strings containers.
+ * Nonetheless, we need to keep in mind that when it comes
+ * to comparison of c-style strings, we need to use 'strcmp'
+ * but not simply relational operators, for using relational
+ * operators is just comparison between the address of two
+ * c-style strings but not their values.
+*/
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <list>
+
+int main() {
+    char c1[] = "c++ primer";
+    char c2[] = "c++ primer";
+    std::vector<char *> roster1{c1};
+    std::list<char *> roster2{c2};
+    std::cout << std::equal(roster1.cbegin(), roster1.cend(), roster2.cbegin()) << std::endl;
+
+    return 0;
+}
+```
+
+### 10.6
+
+```c
+#include <vector>
+#include <algorithm>
+#include <iostream>
+
+int main() {
+    std::vector<int> ivec{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    fill_n(ivec.begin(), ivec.size(), 0);
+
+    for (int i : ivec)
+        std::cout << i << " ";
+    std::cout << std::endl;
+
+    return 0;
+}
+```
+
+### 10.7
+
+a）是错误的。因为泛型算法的一个基本特点是：算法总是通过迭代器操作容器，因此不能直接向/从容器添加、删除元素（但可以读、写），无法改变容器大小。因此，对于 copy 算法，要求目标序列至少要包含与源序列一样多的元素。而此程序中，vec 进行缺省初始化，它是空的，copy 无法进行。如需改变容器大小，需要使用一类特殊的称为插入器的迭代器。我们可以将第三个参数改为 `back_inserter(vec)` ，通过它，copy 算法即可将 lst 中元素的拷贝插入到 vec 的末尾。
+
+```
+copy(lst.begin(), lst.end(), back_inserter(vec));
+
+（b）这段程序仍然是错误的。粗看起来，reserve 为 vec 分配了至少能容纳 10 个 int 的内存空间，调用 fill_n 时，vec 已有足够空间。但泛型算法对于容器的要求并不是有足够的空间。而是足够的元素。此时 vec 仍然为空，没有任何元素。而算法又不具备向容器添加元素的能力，因此 fill_n 仍然失败。这里，我们还是需要使用 back_inserter 来让 fill_n 有能力向 vec 添加元素。
+
+​```c
+fill_n(back_inserter(vec),10,0);
+```
+
+### 10.8
+
+严格来说，**标准库算法根本不知道有 “容器” 这个东西**。它们只接受迭代器参数，运行于这些迭代器之上，通过这些迭代器来访问元素。
+
+因此，当你传递给算法普通迭代器时，这些迭代器只能顺序或随机访问容器中的元素，造成的效果就是算法只能读取元素、改变元素的值、移动元素，但无法添加或删除元素。
+
+但当我们传递给算法插入器，例如 back_inserter 时，由于这类迭代器能调用下层容器的操作来向容器插入元素，造成的算法执行的效果就是向容器中添加了元素。
+
+因此，关键要理解：标准库算法从来不直接操作容器，它们只操作迭代器，从而间接访问容器。能不能插入和删除元素，不在于算法，而在于传递给它们的迭代器是否具有这样的能力。
+
+### 10.9
+
+unique “消除” 重复值的方式并不是删除值重复的元素，执行 unique 后，容器的元素数目并未改变。不重复元素之后的位置上的元素的值是未定义的。
+
+```c
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <string>
+
+void elimDups(std::vector<std::string> &words) {
+    for (std::string &s : words)    // 无须拷贝字符串
+        std::cout << s << " ";
+    std::cout << words.size() << std::endl;
+
+    std::sort(words.begin(), words.end());
+    for (std::string &s : words)
+        std::cout << s << " ";
+    std::cout << words.size() << std::endl;
+
+    std::vector<std::string>::iterator end_unique = std::unique(words.begin(), words.end());
+    for (auto iter = words.begin(); iter != words.end(); ++iter)
+        std::cout << *iter << " ";
+    std::cout << words.size() << std::endl;
+
+    words.erase(end_unique, words.end());
+    for (std::string &s : words)
+        std::cout << s << " ";
+    std::cout << words.size() << std::endl;
+
+    return;
+}
+
+int main() {
+    std::vector<std::string> svec = {"cc", "bbbb", "zz", "aa", "aa", "ccc"};
+    elimDups(svec);
+
+    return 0;
+}
+```
+
+### 10.10
+
+泛型算法的一大优点是 “泛型”，也就是一个算法可用于多种不同的数据类型，算法与所操作的数据结构分离。这对编程效率的提升是非常巨大的。
+
+要做到算法与数据结构分离，重要的技术手段就是使用迭代器作为两者的桥梁。算法从不操作具体的容器，从而也就不存在与特定容器绑定，不适用于其他容器的问题。算法只操作迭代器，由迭代器真正实现对容器的访问。不同容器实现自己特定的迭代器（但不同迭代器是相容的），算法操作不同迭代器就实现了对不同容器的访问。
+
+因此，并不是算法应该改变或不改变容器的问题。为了实现与数据结构的分离，为了实现通用性，**算法根本就不知道容器的存在**。算法访问数据的唯一通道是迭代器。是否改变容器大小，完全是迭代器的选择和责任。当我们向 fill_n 传递 back_inserter 时，虽然最终效果是向容器添加了新元素，但对 fill_n 来说，根本不知道这回事儿。它仍然像往常一样（通过迭代器）向元素赋予新值，只不过这次是通过 back_inserter 来赋值，而 back_inserter 选择将新值添加到了容器而已。
+
+### 10.11
+
+```c
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <string>
+
+bool isShorter(const std::string &s1, const std::string &s2) {
+    return s1.size() < s2.size();
+}
+
+void elimDups(std::vector<std::string> &words) {
+    // 输出原本单词的顺序，单词间使用空格分割
+    for (std::string &s : words)    // 无须拷贝字符串
+        std::cout << s << " ";
+    std::cout << words.size() << std::endl;
+
+    // 按字典序排序 words，以便查找重复单词
+    std::sort(words.begin(), words.end());
+    for (std::string &s : words)
+        std::cout << s << " ";
+    std::cout << words.size() << std::endl;
+
+    // unique 重排输入范围，使得每个单词只出现一次
+    // 排列在范围的前部，返回指向不重复区域之后一个位置的迭代器
+    std::vector<std::string>::iterator end_unique =
+            std::unique(words.begin(), words.end());
+    for (auto iter = words.begin(); iter != words.end(); ++iter)
+        std::cout << *iter << " ";
+    std::cout << words.size() << std::endl;
+
+    // 删除重复单词
+    words.erase(end_unique, words.end());
+    for (std::string &s : words)
+        std::cout << s << " ";
+    std::cout << words.size() << std::endl;
+
+    // 按长度排序，长度相同的单词维持字典序
+    std::stable_sort(words.begin(), words.end(), isShorter);
+    for (std::string &s : words)
+        std::cout << s << " ";
+    std::cout << words.size() << std::endl;
+}
+
+int main() {
+    std::vector<std::string> svec = {"the", "quick", "red", "fox", "jumps",
+                                     "over", "the", "slow", "red", "turtle"};
+    // 将 svec 中的单词按字典序排序，删除重复单词
+    // 然后再按长度排序，长度相同的单词维持字典序
+    elimDups(svec);
+
+    return 0;
+}
+```
+
+### 10.12
+
+略
+
+### 10.13
+
+```c
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <string>
+
+bool predicate(const std::string &s) {
+    return s.size() >= 5;
+}
+
+int main() {
+    std::vector<std::string> svec = {"cccccc", "iii", "zz", "bbbbb", "c"};
+    for (auto &s : svec)        // 无须拷贝字符串
+        std::cout << s << " ";
+    std::cout << std::endl;
+
+    std::vector<std::string>::iterator pivot = std::partition(svec.begin(),
+            svec.end(), predicate);
+
+    for (auto &s : svec)
+        std::cout << s << " ";
+    std::cout << std::endl;
+    for (std::vector<std::string>::iterator iter = svec.begin();
+    iter != pivot; ++iter) {
+        std::cout << *iter << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
+```
+
+### 10.14
+
+```c
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
+int main() {
+    auto sum = [] (int a, int b) { return a + b; };
+    cout << sum(1, 2) << endl;
+}
+```
+
+### 10.15
+
+```c
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
+void add(int a) {
+    // lambda 捕获它所在 add 函数中的变量 a
+    auto sum = [a] (int b) { return a + b; };
+    cout << sum(4) << endl;		// b = 4
+
+}
+int main() {
+    add(1);		// 调用函数 add，形参 a = 1
+    add(2);		// 调用函数 add，形参 a = 2
+
+    return 0;
+}
+```
+
+### 10.16
+
+```c
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <string>
+
+using std::string;
+using std::vector;
+using std::cout;
+using std::endl;
+
+// 如果 ctr 的值大于 1，返回 word 的复数形式
+string make_plural(size_t ctr, const string &word, const string &ending) {
+    return (ctr > 1) ? word + ending : word;
+}
+
+void elimDups(std::vector<std::string> &words) {
+    // 按字典序排序 words，以便查找重复单词
+    sort(words.begin(), words.end());
+    // unique 重排输入范围，使得每个单词只出现一次
+    // 排列在范围的前部，返回指向不重复区域之后一个位置的迭代器
+    auto end_unique = unique(words.begin(), words.end());
+    // 删除重复单词
+    words.erase(end_unique, words.end());
+}
+
+void biggies(vector<string> &words, vector<string>::size_type sz) {
+    // 将 words 按字典序排序，删除重复单词
+    elimDups(words);
+    // 按长度排序，长度相同的单词维持字典序
+    stable_sort(words.begin(), words.end(),
+            [] (const string &a, const string &b) {
+        return a.size() < b.size();
+    }
+    );
+    // 获取一个迭代器，指向第一个满足 size() >= sz 的元素
+    auto wc = find_if(words.begin(), words.end(),
+            [sz] (const string &a) {
+        return a.size() >= sz;
+    }
+    );
+    // 计算满足 size() >= sz 的元素的数目
+    auto count = words.end() - wc;
+    cout << count << " " << make_plural(count, "word", "s")
+         << " of length " << sz << " or longer" << endl;
+    // 打印长度大于等于给定值的单词，每个单词后面接一个空格
+    for_each(wc, words.end(),
+            [] (const string &s) {
+        cout << s << " ";
+    }
+    );
+    cout << endl;
+}
+
+int main() {
+    std::vector<std::string> svec = {"the", "quick", "red", "fox", "jumps",
+                                     "over", "the", "slow", "red", "turtle"};
+    // 按字典序打印 svec 中长度不小于 4 的单词
+    biggies(svec, 4);
+
+    return 0;
+}
+```
+
+### 10.17
+
+```c
+#include <vector>
+#include "Sales_data.h"
+
+//inline bool compareIsbn(const Sales_data &lhs, const Sales_data &rhs) {
+//    return lhs.isbn() < rhs.isbn();
+//}
+
+int main() {
+    Sales_data d1("978-7-121-15535-3");
+    Sales_data d2("978-7-121-15535-212");
+    Sales_data d3("978-7-121-15535-2", 100, 128, 109);
+    Sales_data d4("978-7-121-15535-1");
+    Sales_data d5("978-7-121-15535-210");
+    Sales_data d6("978-7-121-15535-12");
+    std::vector<Sales_data> v = {d1, d2, d3, d4, d5, d6};
+
+    // std::sort(v.begin(), v.end(), compareIsbn);
+    std::sort(v.begin(), v.end(),
+            [] (const Sales_data &lhs, const Sales_data &rhs) {
+        return lhs.isbn() < rhs.isbn();
+    }
+    );
+
+    for (const auto &element : v)
+        std::cout << element.isbn() << std::endl;
+
+    return 0;
+}
+```
+
+### 10.18
+
+```c
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <string>
+
+using std::string;
+using std::vector;
+using std::cout;
+using std::endl;
+
+// 如果 ctr 的值大于 1，返回 word 的复数形式
+string make_plural(size_t ctr, const string &word,
+                   const string &ending) {
+    return (ctr > 1) ? word + ending : word;
+}
+
+void elimDups(std::vector<std::string> &words) {
+    // 按字典序排序 words，以便查找重复单词
+    sort(words.begin(), words.end());
+    // unique 重排输入范围，使得每个单词只出现一次
+    // 排列在范围的前部，返回指向不重复区域之后一个位置的迭代器
+    auto end_unique = unique(words.begin(), words.end());
+    // 删除重复单词
+    words.erase(end_unique, words.end());
+}
+
+void biggies(vector<string> &words, vector<string>::size_type sz) {
+    // 将 words 按字典序排序，删除重复单词
+    elimDups(words);
+    // 获取一个迭代器，指向最后一个满足 size() >= sz 的元素之后的位置
+    auto wc = partition(words.begin(), words.end(),
+                        [sz] (const string &a) {
+                            return a.size() >= sz;
+                        }
+    );
+    // 计算满足 size() >= sz 的元素的数目
+    auto count = wc - words.begin();
+    cout << count << " " << make_plural(count, "word", "s")
+         << " of length " << sz << " or longer" << endl;
+    // 打印长度大于等于给定值的单词，每个单词后面接一个空格
+    for_each(words.begin(), wc,
+             [] (const string &s) {
+                 cout << s << " ";
+             }
+    );
+    cout << endl;
+}
+
+int main() {
+    std::vector<std::string> svec = {"the", "quick", "red", "fox", "jumps",
+                                     "over", "the", "slow", "red", "turtle"};
+    // 按字典序打印 svec 中长度不小于 4 的单词
+    biggies(svec, 4);
+
+    return 0;
+}
+```
+
+### 10.19
+
+```c
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <string>
+
+using std::string;
+using std::vector;
+using std::cout;
+using std::endl;
+
+void output_words(vector<string> &words) {
+    // 打印容器中的内容，方便观察程序执行状态
+    for (auto &s : words)
+        std::cout << s << " ";
+    cout << words.size() << endl;
+}
+
+// 如果 ctr 的值大于 1，返回 word 的复数形式
+string make_plural(size_t ctr, const string &word,
+                   const string &ending) {
+    return (ctr > 1) ? word + ending : word;
+}
+
+void elimDups(std::vector<std::string> &words) {
+    output_words(words);
+
+    // 按字典序排序 words，以便查找重复单词
+    sort(words.begin(), words.end());
+    output_words(words);
+
+    // unique 重排输入范围，使得每个单词只出现一次
+    // 排列在范围的前部，返回指向不重复区域之后一个位置的迭代器
+    auto end_unique = unique(words.begin(), words.end());
+    output_words(words);
+
+    // 删除重复单词
+    words.erase(end_unique, words.end());
+    output_words(words);
+}
+
+void biggies(vector<string> &words, vector<string>::size_type sz) {
+    // 将 words 按字典序排序，删除重复单词
+    elimDups(words);
+
+    // 获取一个迭代器，指向最后一个满足 size() >= sz 的元素之后的位置
+    auto wc = stable_partition(words.begin(), words.end(),
+                               [sz] (const string &a) {
+                                   return a.size() >= sz;
+                               }
+    );
+    output_words(words);
+    // 计算满足 size() >= sz 的元素的数目
+    auto count = wc - words.begin();
+    cout << count << " " << make_plural(count, "word", "s")
+         << " of length " << sz << " or longer" << endl;
+    // 打印长度大于等于给定值的单词，每个单词后面接一个空格
+    for_each(words.begin(), wc,
+             [] (const string &s) {
+                 cout << s << " ";
+             }
+    );
+    cout << endl;
+}
+
+int main() {
+    std::vector<std::string> svec = {"the", "quick", "red", "fox", "jumps",
+                                     "over", "the", "slow", "red", "turtle"};
+    biggies(svec, 4);
+    return 0;
+}
+```
+
+### 10.20
+
+```c
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <string>
+
+using std::string;
+using std::vector;
+using std::cout;
+using std::endl;
+
+void output_words(vector<string> &words) {
+    // 打印容器中的内容，方便观察程序执行状态
+    for (auto &s : words)
+        std::cout << s << " ";
+    cout << words.size() << endl;
+}
+
+// 如果 ctr 的值大于 1，返回 word 的复数形式
+string make_plural(size_t ctr, const string &word,
+                   const string &ending) {
+    return (ctr > 1) ? word + ending : word;
+}
+
+void biggies(vector<string> &words, vector<string>::size_type sz) {
+    output_words(words);
+
+    // 统计满足 size() > sz 的元素的个数
+    auto count = count_if(words.begin(), words.end(),
+                          [sz] (const string &a) {
+                              return a.size() > sz;
+                          }
+    );
+    output_words(words);
+    cout << count << " " << make_plural(count, "word", "s")
+         << " of length longer than " << sz << endl;
+}
+
+int main() {
+    std::vector<std::string> svec = {"determined", "quick", "nuclear", "fox",
+                                     "negotiations", "Things", "accelerating"};
+    biggies(svec, 6);
+    return 0;
+}
+```
+
+### 10.21
+
+```c
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+void mutable_lambda() {
+    int i = 5;
+    auto f = [i] () mutable -> bool {
+        if (i > 0) {
+            --i;
+            return false;
+        } else
+            return true;
+    };
+
+    for (int j = 0; j < 6; ++j)
+        cout << f() << " ";
+    cout << endl;
+}
+
+int main() {
+    mutable_lambda();
+
+    return 0;
+}
+```
+
+### 10.22
+
+### 10.23
+
+### 10.24
+
+### 10.25
+
+### 10.26
+
+在书中前文，我们已经学习了一种插入迭代器 back_inserter（书中 P341P341，查看书后边索引很容易找到相关知识点）。插入迭代器又称插入器，本质上是一种迭代器适配器。如前所述，标准库算法为了保证通用性，并不直接操作容器，而是通过迭代器来访问容器元素。因此，算法不具备直接向容器插入元素的能力。而插入器正是帮助算法实现向容器插入元素的机制。
+
+除了 back_inserter，标准库还提供了另外两种插入器：front_inserter 和 inserter。三者的差异在于如何向容器插入元素：back_inserter 调用 push_back；front_inserter 调用 push_front；inserter 则调用 insert。显然，这也决定了它们插入元素位置的不同。back_inserter 总是插入到容器尾元素之后；front_inserter 总是插入到容器首元素之前；而 inserter 则是插入到给定位置（作为 inserter 的第二个参数传递给它）之前。因此，需要注意这些特点带来的元素插入效果的差异。例如，使用 front_inserter 向容器插入一些元素，元素最终在容器中的顺序与插入顺序相反，但 back_inserter 和 inserter 则不会有这个问题。
+
+### 10.27
+
+```c
+#include <iostream>
+#include <vector>
+#include <list>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    vector<int> ivec{1, 2, 2, 3, 4, 5, 5, 6};
+    list<int> ilst;
+
+    unique_copy(ivec.begin(), ivec.end(), back_inserter(ilst));
+
+    for (auto v : ilst)
+        cout << v << " ";
+
+    return 0;
+}
+```
+
+### 10.28
+
+```c
+#include <iostream>
+#include <vector>
+#include <list>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    vector<int> ivec{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    list<int> ilst1, ilst2, ilst3;
+
+    unique_copy(ivec.begin(), ivec.end(), inserter(ilst1, ilst1.begin()));
+    for (auto v : ilst1)
+        cout << v << " ";
+    cout << endl;
+
+    unique_copy(ivec.begin(), ivec.end(), back_inserter(ilst2));
+    for (auto v : ilst2)
+        cout << v << " ";
+    cout << endl;
+
+    unique_copy(ivec.begin(), ivec.end(), front_inserter(ilst3));
+    for (auto v : ilst3)
+        cout << v << " ";
+    cout << endl;
+
+    return 0;
+}
+```
+
+### 10.24
+
+```c
+#include <iostream>
+#include <iterator>
+#include <vector>
+
+using namespace std;
+
+int main() {
+    vector<string> svec{"Welcome", "To", "C++"};
+
+    for (auto r_iter = svec.crbegin(); r_iter != svec.crend(); ++r_iter)
+        cout << *r_iter;
+    cout << endl;
+
+    return 0;
+}
+```
+
+### 10.35
+
+```c
+#include <iostream>
+#include <iterator>
+#include <vector>
+
+using namespace std;
+
+int main() {
+    vector<string> svec{"Welcome", "To", "C++"};
+
+    for (auto iter = svec.cend(); iter != svec.cbegin(); )
+        cout << *(--iter);
+    cout << endl;
+
+    return 0;
+}
+
+### 10.36
+
+借助反向迭代器，可以扩展算法的能力。例如，使用普通迭代器，find 能查找给定值在容器中第一次出现的位置。如果要查找最后一次出现的位置，还使用普通迭代器的话，代码会很复杂。但借助反向迭代器，find 可以逆序遍历容器中的元素，从而 “第一次出现位置” 实际上也就是正常顺序的最后一次出现位置了。
+
+注意：
+
+1. 由于 list 是链表结构，元素不连续存储，其迭代器不支持算术运算。因此，程序中用一个循环来计数位置编号（count）。
+
+2. 由于程序计数的是正向位置编号，因此，需要将 find 找到的反向迭代器 pos 转换为普通迭代器（使用 base 成员函数）。但要注意，反向迭代器与普通迭代器的转换是左闭合区间的转换，而非精确位置的转换。`pos.base()` 指向的并非最后一个 0，而是它靠近容器尾方向的邻居。因此，首先将 pos 向容器首方向靠近一个位置（++），然后再调用 base，得到的就是指向最后一个 0 的普通迭代器了。读者可以尝试对本例画出类似图 10.2 所示的迭代器位置关系图。
+
+   ```c
+   #include <iostream>
+   #include <iterator>
+   #include <list>
+   #include <algorithm>
+   
+   using namespace std;
+   
+   int main() {
+       list<int> ilst = {0, 3, 7, 1, 0, 0, 4};
+       // 利用反向迭代器查找最后一个 0
+       auto pos = find(ilst.crbegin(), ilst.crend(), 0);
+       // 将反向迭代器 pos 向链表头方向靠近一个位置，pos 转换为普通迭代
+       // 器 pos.base() 时，将回到最后一个 0 的位置
+       ++pos;
+       int count = 1;      // 计数最后一个 0 在链表中的位置，从 1 开始
+       for (auto iter = ilst.cbegin(); iter != pos.base(); ++iter, ++count) {}
+       cout << "最后一个0在第" << count << "个位置" << endl;
+   
+       return 0;
+   }
+
+### 10.37
+
+​```c
+#include <iostream>
+#include <vector>
+#include <list>
+#include <iterator>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    ostream_iterator<int> out_iter(cout, " ");
+    vector<int> ivec = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    // 用流迭代器和 copy 输出 int 序列
+    copy(ivec.cbegin(), ivec.cend(), out_iter);
+    cout << endl;
+
+    list<int> ilst;
+    // 将 ivec[2]，也就是第 3 个元素的位置转换为反向迭代器
+    // vector 是连续存储的，可以进行迭代器的加减
+    vector<int>::reverse_iterator re(ivec.begin() + 2);
+    // 将 ivec[7]，也就是第 8 个元素的位置转换为反向迭代器
+    vector<int>::reverse_iterator rb(ivec.begin() + 7);
+    // 用反向迭代器将元素逆序拷贝到 list
+    copy(rb, re, back_inserter(ilst));
+    copy(ilst.cbegin(), ilst.cend(), out_iter);
+    cout << endl;
+
+    return 0;
+}
+```
+
+### 10.38
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
