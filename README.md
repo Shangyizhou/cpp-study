@@ -15,6 +15,8 @@
 
 [现代操作系统](https://github.com/Shangyizhou/My-Study-Note/tree/main/操作系统/现代操作系统)
 
+[Linux内核设计与实现](https://github.com/Shangyizhou/My-Study-Note/tree/main/操作系统/Linux内核设计与实现)
+
 **计算机网络**
 
 [计算机网络自顶向下](https://github.com/Shangyizhou/My-Study-Note/tree/main/计算机网络)
