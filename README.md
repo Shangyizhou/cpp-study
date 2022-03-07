@@ -5,9 +5,7 @@
 
 **Linux**
 
-[Linux学习笔记_朝闻道ZY的博客-CSDN博客](https://blog.csdn.net/weixin_45860797/article/details/113741056)
 
-**计算机组成原理**
 
 [计算机组成原理-唐朔飞笔记](https://github.com/Shangyizhou/My-Study-Note/tree/main/计算机组成原理)
 
@@ -38,3 +36,7 @@
 **参考**
 
 - [(196条消息) 《黑马》——C++核心编程_漏网小鱼的博客-CSDN博客_黑马编程](https://blog.csdn.net/ClaireSy/article/details/108423047)
+
+- [Linux学习笔记_朝闻道ZY的博客-CSDN博客](https://blog.csdn.net/weixin_45860797/article/details/113741056)
+
+  
