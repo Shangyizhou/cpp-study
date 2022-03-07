@@ -115,7 +115,6 @@ static，const，vector，map，new，malloc，面向对象，多态，虚函数
 - ARP攻击，ARP欺骗？
 - 三次握手？
 - UDP数据包长度多少？
-- 进程的状态有几种？
 - http头部方法GET?POST?其他的有了解吗？GET和POST的区别？POST可以在URL中携带参数吗？
 - cookie有存什么东西吗？
 - 五层网络模型? 交换机那一层？路由器呢？路由器干嘛的？
