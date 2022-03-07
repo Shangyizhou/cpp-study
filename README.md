@@ -5,6 +5,8 @@
 
 **Linux**
 
+[Linux学习笔记_朝闻道ZY的博客-CSDN博客](https://blog.csdn.net/weixin_45860797/article/details/113741056)
+
 **计算机组成原理**
 
 [计算机组成原理-唐朔飞笔记](https://github.com/Shangyizhou/My-Study-Note/tree/main/计算机组成原理)
