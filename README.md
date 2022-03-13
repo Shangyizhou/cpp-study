@@ -1,7 +1,15 @@
 # My-Study-Note
 **C++学习笔记**
 
+[C++ Primer](https://github.com/Shangyizhou/My-Study-Note/tree/main/C%2B%2B/C%2B%2B Primer)
+
+[Effective C++](https://github.com/Shangyizhou/My-Study-Note/tree/main/C%2B%2B/Effective C%2B%2B)
+
+[Accelerated C++学习笔记，一些练习代码](https://github.com/Shangyizhou/Accelerated-Cpp)
+
 [对象模型](https://github.com/Shangyizhou/C-plus-plus-Object-Model)
+
+[C++文章](https://github.com/Shangyizhou/My-Study-Note/tree/main/C%2B%2B/文章)
 
 **Linux**
 
