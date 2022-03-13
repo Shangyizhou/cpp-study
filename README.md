@@ -1,9 +1,9 @@
 # My-Study-Note
 **C++学习笔记**
 
-[My-Study-Note/C++/C++ Primer at main · Shangyizhou/My-Study-Note (github.com)](https://github.com/Shangyizhou/My-Study-Note/tree/main/C%2B%2B/C%2B%2B Primer)
+[C++ Primer](https://github.com/Shangyizhou/My-Study-Note/tree/main/C%2B%2B/C%2B%2B-Primer)
 
-[Effective C++](https://github.com/Shangyizhou/My-Study-Note/tree/main/C%2B%2B/Effective C%2B%2B)
+[Effective C++](https://github.com/Shangyizhou/My-Study-Note/tree/main/C%2B%2B/Effective-C%2B%2B)
 
 [Accelerated C++学习笔记，一些练习代码](https://github.com/Shangyizhou/Accelerated-Cpp)
 
