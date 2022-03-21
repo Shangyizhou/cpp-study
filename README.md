@@ -1,5 +1,5 @@
 # My-Study-Note
-**C++学习笔记**
+## C++
 
 [C++ Primer](https://github.com/Shangyizhou/My-Study-Note/tree/main/C%2B%2B/C%2B%2B-Primer)
 
@@ -11,37 +11,41 @@
 
 [C++文章](https://github.com/Shangyizhou/My-Study-Note/tree/main/C%2B%2B/文章)
 
-**Linux**
+## Linux
 
+[Linux系统编程学习记录](https://github.com/Shangyizhou/Linux-CPP-)
 
+## 专业
+
+### 计算机组成原理
 
 [计算机组成原理-唐朔飞笔记](https://github.com/Shangyizhou/My-Study-Note/tree/main/计算机组成原理)
 
-**数据结构与算法**
+### 数据结构与算法
 
-**操作系统**
+### 操作系统
 
 [现代操作系统](https://github.com/Shangyizhou/My-Study-Note/tree/main/操作系统/现代操作系统)
 
 [Linux内核设计与实现](https://github.com/Shangyizhou/My-Study-Note/tree/main/操作系统/Linux内核设计与实现)
 
-**计算机网络**
+### 计算机网络
 
 [计算机网络自顶向下](https://github.com/Shangyizhou/My-Study-Note/tree/main/计算机网络)
 
-**编译链接**
+### 编译链接
 
 [编译链接](https://github.com/Shangyizhou/My-Study-Note/tree/main/编译链接)
 
-**力扣**
+## 力扣
 
-**项目**
+## 项目
 
-**面经**
+## 面经
 
 [面经](https://github.com/Shangyizhou/My-Study-Note/tree/main/面经)
 
-**参考**
+## 可参考资料
 
 - [(196条消息) 《黑马》——C++核心编程_漏网小鱼的博客-CSDN博客_黑马编程](https://blog.csdn.net/ClaireSy/article/details/108423047)
 
